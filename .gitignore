@@ -1,0 +1,13 @@
+.DS_Store
+node_modules/
+.vercel/
+assets/photos/**/*.png
+
+# Local source/reference materials not used by the deployed site.
+AI实践/
+摄影作品/
+摄影作品_PNG/
+个人简介.docx
+个人简介排版参考.png
+个人形象写真.png
+导航栏毛玻璃效果数据.png
