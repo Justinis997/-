@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="阅读贾丁丁记录日常、感受与思考的个人随笔。">
+  <meta property="og:title" content="随笔 | 贾丁丁">
+  <meta property="og:description" content="阅读贾丁丁记录日常、感受与思考的个人随笔。">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#f5f5f7">
+  <title>随笔 | 贾丁丁</title>
+  <script>document.documentElement.classList.add('js')</script>
+  <link rel="icon" href="./assets/images/logo-black.png" type="image/png">
+  <link rel="stylesheet" href="./assets/css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="site-nav" aria-label="主导航">
+      <a class="brand" href="./index.html" aria-label="Justin，返回首页">Justin</a>
+      <button class="mobile-menu-button" type="button" aria-expanded="false" aria-controls="primary-links">
+        <span class="sr-only">打开导航菜单</span><span></span><span></span>
+      </button>
+      <div class="primary-links" id="primary-links">
+        <div class="nav-item" data-nav-menu="photography">
+          <a class="nav-trigger" href="./photography.html" aria-haspopup="true" aria-expanded="false">摄影</a>
+          <div class="nav-mega nav-mega--photography" data-nav-dropdown>
+            <div class="nav-mega__inner">
+              <section class="nav-mega__primary" aria-label="探索摄影">
+                <p class="nav-mega__label">探索摄影</p>
+                <div class="nav-mega__large-links">
+                  <a href="./photography.html?category=光影">光影</a>
+                  <a href="./photography.html?category=形式">形式</a>
+                  <a href="./photography.html?category=表面">表面</a>
+                  <a href="./photography.html?category=风光">风光</a>
+                  <a href="./photography.html?category=建筑">建筑</a>
+                  <a href="./photography.html?category=陌生人">陌生人</a>
+                  <a href="./photography.html?category=生物">生物</a>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+        <div class="nav-item" data-nav-menu="essays">
+          <a class="nav-trigger" href="./articles.html" aria-current="page" aria-haspopup="true" aria-expanded="false">随笔</a>
+          <div class="nav-mega nav-mega--essays" data-nav-dropdown>
+            <div class="nav-mega__inner">
+              <section class="nav-mega__primary" aria-label="浏览随笔">
+                <p class="nav-mega__label">浏览随笔</p>
+                <div class="nav-mega__large-links" role="tablist" aria-label="随笔浏览方式">
+                  <button class="nav-mega__switch is-active" type="button" role="tab" data-nav-panel-target="time" aria-selected="true" aria-controls="nav-essay-time-panel">时间</button>
+                  <button class="nav-mega__switch" type="button" role="tab" data-nav-panel-target="category" aria-selected="false" aria-controls="nav-essay-category-panel">类别</button>
+                </div>
+              </section>
+              <section class="nav-mega__secondary" aria-live="polite">
+                <div class="nav-mega__panel is-active" id="nav-essay-time-panel" role="tabpanel" data-nav-panel="time" aria-hidden="false">
+                  <p class="nav-mega__label">时间</p>
+                  <div class="nav-mega__small-links">
+                    <a href="./articles.html#essays-2026">2026</a>
+                    <a href="./articles.html#essays-2025">2025</a>
+                    <a href="./articles.html#essays-2024">2024</a>
+                    <a href="./articles.html#essays-2023">2023</a>
+                    <a href="./articles.html#essays-2022">2022</a>
+                    <a href="./articles.html#essays-2021">2021</a>
+                  </div>
+                </div>
+                <div class="nav-mega__panel" id="nav-essay-category-panel" role="tabpanel" data-nav-panel="category" aria-hidden="true">
+                  <p class="nav-mega__label">类别</p>
+                  <div class="nav-mega__small-links">
+                    <a href="./articles.html?category=感受">感受</a>
+                    <a href="./articles.html?category=梦">梦</a>
+                    <a href="./articles.html?category=笔记">笔记</a>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+        <a href="./about.html">关于我</a>
+      </div>
+    </nav>
+  </header>
+
+  <main class="interior-main articles-main">
+    <header class="interior-header">
+      <h1 class="section-heading">
+        <span class="zh">随笔</span>
+        <span class="en">Essays</span>
+      </h1>
+    </header>
+
+    <div class="essay-archive" data-essay-archive></div>
+  </main>
+  <dialog class="essay-dialog" data-essay-dialog aria-modal="true" aria-labelledby="essay-dialog-title">
+    <article class="essay-dialog__article">
+      <button class="essay-dialog__close" type="button" data-essay-dialog-close aria-label="关闭随笔">×</button>
+      <time class="essay-dialog__date" data-essay-dialog-date></time>
+      <h2 id="essay-dialog-title" data-essay-dialog-title></h2>
+      <div class="essay-dialog__content" data-essay-dialog-content></div>
+    </article>
+  </dialog>
+  <script type="module" src="./assets/js/site.js"></script>
+  <script type="module" src="./assets/js/essays.js"></script>
+</body>
+</html>

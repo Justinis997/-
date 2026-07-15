@@ -1,0 +1,10 @@
+.DS_Store
+.git/
+.vercel/
+AGENTS.md
+README.md
+docs/
+scripts/
+tests/
+参考/
+
