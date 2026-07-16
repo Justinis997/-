@@ -270,6 +270,33 @@ test('homepage sections and bilingual headings are in the required order', () =>
   }
 });
 
+test('homepage latest news shows aligned update totals and the current activity', () => {
+  const html = read('index.html');
+  const css = read('assets/css/styles.css');
+  const javascript = read('assets/js/home.js');
+
+  assert.match(html, /class="news-overview"[^>]*data-news-overview/);
+  assert.match(html, /<h2 class="news-panel__title"[^>]*>作品更新<\/h2>/);
+  assert.match(html, /<h2 class="news-panel__title"[^>]*>近期动态<\/h2>/);
+  assert.match(html, /data-update-count="photography"[\s\S]*?摄影作品[\s\S]*?data-update-count="essays"[\s\S]*?随笔/);
+  assert.ok(html.includes('在ai的天空中翱翔，在token的海洋中流浪'));
+  assert.match(css, /\.news-overview\s*{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s);
+  assert.match(css, /\.news-panel__title\s*{[^}]*margin:\s*0/s);
+  assert.match(css, /\.news-activity\s*{[^}]*font-size:\s*clamp\(16px,\s*1\.35vw,\s*20px\);[^}]*font-weight:\s*400;/s);
+  assert.match(css, /\.update-count\s*{[^}]*text-align:\s*center;/s);
+  assert.match(css, /\.update-count__value\s*{[^}]*justify-content:\s*center;/s);
+  assert.match(css, /\.update-count__number\s*{[^}]*font-size:\s*clamp\(38px,\s*4\.2vw,\s*60px\)/s);
+  assert.match(css, /\.update-count__label\s*{[^}]*font-size:\s*12px;[^}]*text-align:\s*center;/s);
+  assert.doesNotMatch(css, /\.news-overview\s*{[^}]*border/s);
+  assert.doesNotMatch(css, /\.news-panel--activity\s*{[^}]*border/s);
+  assert.doesNotMatch(css, /\.update-count\s*{[^}]*border/s);
+  assert.match(css, /@media \(max-width:\s*640px\)[\s\S]*?\.news-overview\s*{[^}]*grid-template-columns:\s*1fr/s);
+  assert.match(javascript, /photography:\s*PHOTO_DATA\.length/);
+  assert.match(javascript, /essays:\s*ESSAY_DATA\.length/);
+  assert.match(javascript, /IntersectionObserver/);
+  assert.match(javascript, /prefers-reduced-motion:\s*reduce/);
+});
+
 test('homepage contact links are exact', () => {
   const html = read('index.html');
   const xiaohongshu = html.indexOf('https://www.xiaohongshu.com/user/profile/6579a136000000001902f6a4');

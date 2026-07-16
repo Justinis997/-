@@ -1,4 +1,5 @@
 import { PHOTO_DATA } from './photo-data.js';
+import { ESSAY_DATA } from './essay-data.js';
 
 const hierarchyClasses = [
   'latest-photo--primary',
@@ -9,6 +10,64 @@ const hierarchyClasses = [
 let latestPhotos = [];
 let activePhotoIndex = 0;
 let returnFocus = null;
+
+const updateTotals = Object.freeze({
+  photography: PHOTO_DATA.length,
+  essays: ESSAY_DATA.length,
+});
+
+const setUpdateCount = (element, value) => {
+  element.textContent = new Intl.NumberFormat('zh-CN').format(value);
+};
+
+const animateUpdateCount = (element, target) => {
+  const duration = 1100;
+  const startTime = globalThis.performance?.now?.() ?? 0;
+  element.classList.add('is-counting');
+
+  const tick = (currentTime) => {
+    const elapsed = Math.min((currentTime - startTime) / duration, 1);
+    const easedProgress = 1 - ((1 - elapsed) ** 3);
+    setUpdateCount(element, Math.round(target * easedProgress));
+
+    if (elapsed < 1) {
+      globalThis.requestAnimationFrame?.(tick);
+    }
+  };
+
+  globalThis.requestAnimationFrame?.(tick);
+};
+
+export function initUpdateCounters() {
+  const overview = document.querySelector('[data-news-overview]');
+  if (!overview) return;
+
+  const counters = [...overview.querySelectorAll('[data-update-count]')];
+  const showFinalCounts = () => {
+    counters.forEach((counter) => {
+      setUpdateCount(counter, updateTotals[counter.dataset.updateCount] ?? 0);
+    });
+  };
+  const animateCounts = () => {
+    counters.forEach((counter) => {
+      animateUpdateCount(counter, updateTotals[counter.dataset.updateCount] ?? 0);
+    });
+  };
+
+  const reduceMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  if (reduceMotion || !('IntersectionObserver' in globalThis)) {
+    showFinalCounts();
+    return;
+  }
+
+  const observer = new IntersectionObserver((entries, currentObserver) => {
+    if (!entries.some((entry) => entry.isIntersecting)) return;
+    animateCounts();
+    currentObserver.disconnect();
+  }, { threshold: 0.35 });
+
+  observer.observe(overview);
+}
 
 const getLightboxElements = () => ({
   lightbox: document.querySelector('[data-home-lightbox]'),
@@ -116,6 +175,7 @@ export function initHomeLightbox() {
 }
 
 if (typeof document !== 'undefined') {
+  initUpdateCounters();
   renderLatestPhotos(PHOTO_DATA);
   initHomeLightbox();
 }

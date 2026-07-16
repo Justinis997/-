@@ -427,11 +427,102 @@ a {
   color: var(--text);
 }
 
-.news-message {
+.news-overview {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.news-panel {
+  min-width: 0;
+  padding-top: clamp(20px, 2.2vw, 30px);
+  padding-right: clamp(28px, 4vw, 60px);
+}
+
+.news-panel--activity {
+  padding-right: 0;
+  padding-left: clamp(28px, 4vw, 60px);
+}
+
+.news-panel__title {
   margin: 0;
+  font-size: clamp(17px, 1.45vw, 21px);
+  font-weight: 600;
+  letter-spacing: -.025em;
+}
+
+.update-counts {
+  margin-top: clamp(44px, 6vh, 76px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(18px, 3vw, 44px);
+}
+
+.update-count {
+  text-align: center;
+}
+
+.update-count__value,
+.update-count__label,
+.news-activity {
+  margin: 0;
+}
+
+.update-count__value {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 7px;
+  font-variant-numeric: tabular-nums;
+  line-height: .95;
+}
+
+.update-count__number {
+  display: inline-block;
+  font-size: clamp(38px, 4.2vw, 60px);
+  font-weight: 650;
+  letter-spacing: -.075em;
+}
+
+.update-count__number.is-counting {
+  animation: update-number-roll .9s var(--ease-apple) both;
+}
+
+.update-count__unit {
   color: var(--muted);
-  font-size: clamp(18px, 2vw, 26px);
-  letter-spacing: -0.02em;
+  font-size: clamp(11px, .9vw, 13px);
+}
+
+.update-count__label {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.news-activity {
+  max-width: 28em;
+  margin-top: clamp(44px, 6vh, 76px);
+  color: var(--text);
+  font-size: clamp(16px, 1.35vw, 20px);
+  font-weight: 400;
+  line-height: 1.7;
+  letter-spacing: -.015em;
+}
+
+@keyframes update-number-roll {
+  from {
+    opacity: .18;
+    filter: blur(4px);
+    transform: translateY(.55em);
+  }
+
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+  }
 }
 
 .latest-photos {
@@ -1531,6 +1622,33 @@ a {
   .home-card__header {
     align-items: flex-start;
     margin-bottom: 24px;
+  }
+
+  .news-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .news-panel {
+    padding: 20px 0 30px;
+  }
+
+  .news-panel--activity {
+    padding-top: 28px;
+    padding-left: 0;
+  }
+
+  .update-counts,
+  .news-activity {
+    margin-top: 30px;
+  }
+
+  .update-count__number {
+    font-size: clamp(42px, 14vw, 56px);
+  }
+
+  .news-activity {
+    max-width: 28em;
+    font-size: 16px;
   }
 
   .latest-photos,
