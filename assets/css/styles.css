@@ -1172,6 +1172,10 @@ a {
   margin-top: 0;
 }
 
+.about-degree {
+  margin-left: 18px;
+}
+
 .about-contact-links {
   width: auto;
   margin: 0;

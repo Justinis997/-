@@ -400,10 +400,14 @@ test('essay data contains all 84 text-only notes grouped by original creation da
 test('about page is bilingual only in its title', () => {
   const html = read('about.html');
   assert.match(html, /<span class="zh">关于我<\/span>\s*<span class="en">About Me<\/span>/);
-  assert.ok(html.includes('建筑观察者 / AI 实践者 / 创作者'));
-  assert.ok(html.includes('安徽建筑大学'));
-  assert.ok(html.includes('中国铁建港航局'));
-  assert.ok(html.includes('安徽万泰地球物理技术有限公司'));
+  assert.ok(html.includes('<p class="about-identity">1997.08</p>'));
+  assert.ok(html.includes('安徽建筑大学<span class="about-degree">本科</span>'));
+  assert.ok(html.includes('中国铁建XX局'));
+  assert.ok(html.includes('安徽XX技术有限公司'));
+  assert.ok(html.includes('<h3>关注点</h3>'));
+  assert.ok(html.includes('<p>AI与人类交互的未来</p>'));
+  assert.equal(html.includes('2019 - 2021'), false);
+  assert.equal(html.includes('2023 - 2024'), false);
   assert.ok(html.includes('class="about-layout"'));
   assert.ok(html.includes('./assets/images/portrait.png'));
   assert.equal(html.includes('Education'), false);
@@ -431,6 +435,7 @@ test('about page uses aligned two-column details and repeats homepage social acc
   assert.match(css, /\.about-section__content\s*\{[^}]*padding-left:\s*21px\s*;/s);
   assert.doesNotMatch(css, /\.about-section__content\s*\{[^}]*border-left:/s);
   assert.match(css, /\.about-identity\s*\{[^}]*margin:\s*12px\s+0\s+clamp\(36px,\s*5vh,\s*56px\)\s*;/s);
+  assert.match(css, /\.about-degree\s*\{[^}]*margin-left:\s*18px\s*;/s);
   for (const url of [
     'https://www.xiaohongshu.com/user/profile/6579a136000000001902f6a4',
     'https://x.com/bukejiliang',
