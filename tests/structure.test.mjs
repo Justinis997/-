@@ -78,6 +78,12 @@ test('mobile Tools stays left aligned and only reveals Pick One when expanded', 
   assert.match(site, /trigger\.addEventListener\?\.\('click',[\s\S]*?shouldOpen/s);
 });
 
+test('Tools trigger removes the browser button box without adding a replacement decoration', () => {
+  const css = read('assets/css/styles.css');
+  assert.match(css, /\.nav-trigger--button\s*\{[^}]*appearance:\s*none;[^}]*border:\s*0;[^}]*outline:\s*0;[^}]*box-shadow:\s*none;/s);
+  assert.doesNotMatch(css, /\.nav-trigger--button:focus-visible\s*\{[^}]*text-decoration:/s);
+});
+
 test('mega menus use compact full-width expansion, staggered text motion, and a blurred page backdrop', () => {
   const css = read('assets/css/styles.css');
   const site = read('assets/js/site.js');
