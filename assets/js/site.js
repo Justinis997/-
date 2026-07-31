@@ -3,6 +3,7 @@ export function initMegaNavigation() {
   if (menuItems.length === 0) return;
 
   let closeTimer = null;
+  const isCompactLayout = () => globalThis.matchMedia?.('(max-width: 640px)')?.matches ?? false;
 
   const updateMenuHeight = (item) => {
     const primaryHeight = item.querySelector?.('.nav-mega__primary')?.scrollHeight ?? 0;
@@ -47,12 +48,31 @@ export function initMegaNavigation() {
   };
 
   menuItems.forEach((item) => {
-    item.addEventListener?.('pointerenter', () => openMenu(item));
-    item.addEventListener?.('pointerleave', () => scheduleClose(item));
-    item.addEventListener?.('focusin', () => openMenu(item));
-    item.addEventListener?.('focusout', (event) => {
-      if (!item.contains?.(event.relatedTarget)) scheduleClose(item);
+    item.addEventListener?.('pointerenter', () => {
+      if (!isCompactLayout()) openMenu(item);
     });
+    item.addEventListener?.('pointerleave', () => {
+      if (!isCompactLayout()) scheduleClose(item);
+    });
+    item.addEventListener?.('focusin', () => {
+      if (!isCompactLayout()) openMenu(item);
+    });
+    item.addEventListener?.('focusout', (event) => {
+      if (!isCompactLayout() && !item.contains?.(event.relatedTarget)) scheduleClose(item);
+    });
+
+    const trigger = item.querySelector?.('.nav-trigger');
+    if (trigger?.matches?.('button')) {
+      trigger.addEventListener?.('click', () => {
+        if (!isCompactLayout()) {
+          openMenu(item);
+          return;
+        }
+        const shouldOpen = !item.classList.contains('is-open');
+        closeAllMenus(item);
+        setMenuOpen(item, shouldOpen);
+      });
+    }
 
     const switches = [...(item.querySelectorAll?.('[data-nav-panel-target]') ?? [])];
     const panels = [...(item.querySelectorAll?.('[data-nav-panel]') ?? [])];
@@ -99,6 +119,11 @@ export function initSite() {
     const closeMenu = () => {
       menuButton.setAttribute('aria-expanded', 'false');
       primaryLinks.classList.remove('is-open');
+      [...(primaryLinks.querySelectorAll?.('[data-nav-menu].is-open') ?? [])].forEach((item) => {
+        item.classList.remove('is-open');
+        item.querySelector?.('.nav-trigger')?.setAttribute('aria-expanded', 'false');
+      });
+      document.body?.classList.remove('nav-mega-open');
       if (label) label.textContent = '打开导航菜单';
     };
 

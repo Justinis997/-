@@ -45,6 +45,39 @@ test('all pages share the OpenAI-style photography and essay mega menus', () => 
   }
 });
 
+test('all pages share the Tools mega menu and Pick One direct link', () => {
+  const pickOneUrl = 'https://pick-one-random.justin-better.chatgpt.site';
+  for (const page of pages) {
+    const html = read(page);
+    const essays = html.indexOf('>随笔</a>');
+    const tools = html.indexOf('>Tools</button>');
+    const about = html.indexOf('>关于我</a>');
+    assert.ok(essays >= 0 && essays < tools && tools < about, `${page} has the wrong Tools navigation order`);
+    assert.match(html, /data-nav-menu="tools"[\s\S]*?<button[^>]*>Tools<\/button>[\s\S]*?探索工具/);
+    assert.doesNotMatch(html, /<button[^>]*href=[^>]*>Tools<\/button>/);
+    assert.match(html, /<span class="nav-tool-link__title">Pick One<\/span>/);
+    assert.match(html, /<section class="nav-mega__secondary nav-mega__tool-description-column"[^>]*>[\s\S]*?<p class="nav-tool-link__description">在电影与书籍榜单中随机挑选下一部作品。<\/p>/);
+    assert.equal(html.split(`href="${pickOneUrl}"`).length - 1, 1, `${page} must only link the Pick One menu item`);
+  }
+});
+
+test('essay and Tools mega menus share the shortened two-column spacing', () => {
+  const css = read('assets/css/styles.css');
+  assert.match(css, /\.nav-mega__inner\s*\{[^}]*grid-template-columns:\s*clamp\(260px,\s*14\.2vw,\s*290px\)\s+minmax\(0,\s*1fr\);[^}]*gap:\s*clamp\(24px,\s*3\.5vw,\s*56px\);/s);
+  assert.doesNotMatch(css, /\.nav-mega--tools \.nav-mega__inner\s*\{[^}]*grid-template-columns:\s*1fr;/s);
+  assert.match(css, /\.nav-mega__tool-description-column\s*\{[^}]*padding-top:/s);
+});
+
+test('mobile Tools stays left aligned and only reveals Pick One when expanded', () => {
+  const css = read('assets/css/styles.css');
+  const site = read('assets/js/site.js');
+  assert.match(css, /\.nav-trigger--button\s*\{[^}]*text-align:\s*left;/s);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*?\.nav-item--tools \.nav-mega\s*\{[^}]*display:\s*none;/s);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*?\.nav-item--tools\.is-open \.nav-mega\s*\{[^}]*display:\s*block;/s);
+  assert.match(site, /isCompactLayout/);
+  assert.match(site, /trigger\.addEventListener\?\.\('click',[\s\S]*?shouldOpen/s);
+});
+
 test('mega menus use compact full-width expansion, staggered text motion, and a blurred page backdrop', () => {
   const css = read('assets/css/styles.css');
   const site = read('assets/js/site.js');
