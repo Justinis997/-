@@ -99,7 +99,7 @@
   </header>
 
   <main class="home-main">
-    <section class="home-card reveal">
+    <section class="home-card home-card--news reveal">
       <div class="home-card__header">
         <h1 class="section-heading">
           <span class="zh">最新消息</span>
@@ -107,28 +107,28 @@
         </h1>
       </div>
       <div class="news-overview" data-news-overview>
-        <section class="news-panel" aria-labelledby="recent-updates-title">
+        <section class="news-panel" aria-labelledby="recent-activity-title">
+          <h2 class="news-panel__title" id="recent-activity-title">近期动态</h2>
+          <p class="news-activity">在ai的天空中翱翔，在token的海洋中流浪</p>
+        </section>
+        <section class="news-panel news-panel--updates" aria-labelledby="recent-updates-title">
           <h2 class="news-panel__title" id="recent-updates-title">作品更新</h2>
           <div class="update-counts" aria-label="本次更新内容">
             <div class="update-count">
               <p class="update-count__value">
+                <span class="update-count__label">摄影作品</span>
                 <span class="update-count__number" data-update-count="photography">0</span>
                 <span class="update-count__unit">张</span>
               </p>
-              <p class="update-count__label">摄影作品</p>
             </div>
             <div class="update-count">
               <p class="update-count__value">
+                <span class="update-count__label">随笔</span>
                 <span class="update-count__number" data-update-count="essays">0</span>
                 <span class="update-count__unit">篇</span>
               </p>
-              <p class="update-count__label">随笔</p>
             </div>
           </div>
-        </section>
-        <section class="news-panel news-panel--activity" aria-labelledby="recent-activity-title">
-          <h2 class="news-panel__title" id="recent-activity-title">近期动态</h2>
-          <p class="news-activity">在ai的天空中翱翔，在token的海洋中流浪</p>
         </section>
       </div>
     </section>

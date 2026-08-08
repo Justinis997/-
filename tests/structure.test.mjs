@@ -315,12 +315,12 @@ test('homepage latest news shows aligned update totals and the current activity'
   const javascript = read('assets/js/home.js');
 
   assert.match(html, /class="news-overview"[^>]*data-news-overview/);
-  assert.match(html, /<h2 class="news-panel__title"[^>]*>作品更新<\/h2>/);
-  assert.match(html, /<h2 class="news-panel__title"[^>]*>近期动态<\/h2>/);
-  assert.match(html, /data-update-count="photography"[\s\S]*?摄影作品[\s\S]*?data-update-count="essays"[\s\S]*?随笔/);
+  assert.match(html, /<h2 class="news-panel__title"[^>]*>近期动态<\/h2>[\s\S]*?<h2 class="news-panel__title"[^>]*>作品更新<\/h2>/);
+  assert.match(html, /update-count__label">摄影作品[\s\S]*?data-update-count="photography"[\s\S]*?张[\s\S]*?update-count__label">随笔[\s\S]*?data-update-count="essays"[\s\S]*?篇/);
   assert.ok(html.includes('在ai的天空中翱翔，在token的海洋中流浪'));
   assert.match(css, /\.news-overview\s*{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/s);
   assert.match(css, /\.news-panel__title\s*{[^}]*margin:\s*0/s);
+  assert.match(css, /\.brand\s*{[^}]*color:\s*#f37021;/s);
   assert.match(css, /\.news-activity\s*{[^}]*font-size:\s*clamp\(16px,\s*1\.35vw,\s*20px\);[^}]*font-weight:\s*400;/s);
   assert.match(css, /\.update-count\s*{[^}]*text-align:\s*center;/s);
   assert.match(css, /\.update-count__value\s*{[^}]*justify-content:\s*center;/s);
