@@ -1,5 +1,6 @@
 import { PHOTO_DATA } from './photo-data.js';
 import { ESSAY_DATA } from './essay-data.js';
+import { SITE_SETTINGS } from './site-settings.js';
 
 const hierarchyClasses = [
   'latest-photo--primary',
@@ -67,6 +68,11 @@ export function initUpdateCounters() {
   }, { threshold: 0.35 });
 
   observer.observe(overview);
+}
+
+export function initRecentActivity() {
+  const activity = document.querySelector('.news-activity');
+  if (activity && SITE_SETTINGS.recentActivity) activity.textContent = SITE_SETTINGS.recentActivity;
 }
 
 const getLightboxElements = () => ({
@@ -175,6 +181,7 @@ export function initHomeLightbox() {
 }
 
 if (typeof document !== 'undefined') {
+  initRecentActivity();
   initUpdateCounters();
   renderLatestPhotos(PHOTO_DATA);
   initHomeLightbox();
