@@ -1,6 +1,6 @@
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 
 const API_VERSION = '2026-03-11';
@@ -143,7 +143,14 @@ export const mergeManagedRecords = (existing, managed) => [
   return a.id.localeCompare(b.id);
 });
 
-const syncPhotography = async (pages, existingPhotos) => {
+const sortRecords = (records) => [...records].sort((a, b) => {
+  if (a.date && b.date) return b.date.localeCompare(a.date) || a.id.localeCompare(b.id);
+  if (a.date) return -1;
+  if (b.date) return 1;
+  return a.id.localeCompare(b.id);
+});
+
+const syncPhotography = async (pages) => {
   await Promise.all(photoCategories.flatMap((category) => [
     cleanGeneratedPhotos(resolve(thumbnailRoot, category)),
     cleanGeneratedPhotos(resolve(fullRoot, category)),
@@ -161,6 +168,7 @@ const syncPhotography = async (pages, existingPhotos) => {
     const creationDate = date(page.properties?.创作日期);
     const description = plainText(page.properties?.作品说明);
     const category = select(page.properties?.分类);
+    const websiteId = plainText(page.properties?.网站ID);
     const files = page.properties?.作品照片?.files ?? [];
     if (!title || files.length === 0 || !photoCategories.includes(category)) {
       throw new Error(`已发布的摄影作品缺少名称、有效分类或照片：${page.id}`);
@@ -172,6 +180,9 @@ const syncPhotography = async (pages, existingPhotos) => {
       const image = await downloadPhoto(url, page.id, index, category);
       records.push({
         ...image,
+        id: files.length > 1
+          ? `${websiteId || notionId(page.id)}-${String(index + 1).padStart(2, '0')}`
+          : websiteId || notionId(page.id),
         title: files.length > 1 ? `${title} · ${index + 1}` : title,
         category,
         date: creationDate,
@@ -181,27 +192,25 @@ const syncPhotography = async (pages, existingPhotos) => {
     }
   }
 
-  const merged = mergeManagedRecords(existingPhotos, records);
-  await writeFile(photoDataPath, `export const PHOTO_DATA = Object.freeze(${JSON.stringify(merged, null, 2)});\n`);
+  await writeFile(photoDataPath, `export const PHOTO_DATA = Object.freeze(${JSON.stringify(sortRecords(records), null, 2)});\n`);
   return records.length;
 };
 
-const syncEssays = async (pages, existingEssays) => {
+const syncEssays = async (pages) => {
   const managed = [];
   for (const page of pages) {
     const title = plainText(page.properties?.文章标题);
     const publishedAt = date(page.properties?.发布日期);
     if (!title || !publishedAt) throw new Error(`已发布的随笔缺少标题或发布日期：${page.id}`);
     managed.push({
-      id: notionId(page.id),
+      id: plainText(page.properties?.网站ID) || notionId(page.id),
       date: publishedAt.slice(0, 10),
       category: select(page.properties?.类别) || '感受',
       title,
       content: await retrieveMarkdown(page.id),
     });
   }
-  const merged = mergeManagedRecords(existingEssays, managed);
-  await writeFile(essayDataPath, `export const ESSAY_DATA = ${JSON.stringify(merged, null, 2)};\n`);
+  await writeFile(essayDataPath, `export const ESSAY_DATA = ${JSON.stringify(sortRecords(managed), null, 2)};\n`);
   return managed.length;
 };
 
@@ -221,17 +230,14 @@ export const run = async () => {
     return;
   }
 
-  const cacheBust = `?sync=${Date.now()}`;
-  const [{ PHOTO_DATA }, { ESSAY_DATA }, photography, essays, settings] = await Promise.all([
-    import(`${pathToFileURL(photoDataPath).href}${cacheBust}`),
-    import(`${pathToFileURL(essayDataPath).href}${cacheBust}`),
+  const [photography, essays, settings] = await Promise.all([
     queryPublished(dataSources.photography),
     queryPublished(dataSources.essays),
     queryAll(dataSources.settings),
   ]);
 
-  const photographyCount = await syncPhotography(photography, PHOTO_DATA);
-  const essayCount = await syncEssays(essays, ESSAY_DATA);
+  const photographyCount = await syncPhotography(photography);
+  const essayCount = await syncEssays(essays);
   await syncSettings(settings);
   console.log(`Notion 同步完成：摄影作品 ${photographyCount} 张，随笔 ${essayCount} 篇。`);
 };

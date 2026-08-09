@@ -22,6 +22,8 @@ Vercel 需要设置私密环境变量 `NOTION_API_KEY`。三个数据源 ID 已�
 
 Notion 上传文件的地址会过期，因此构建过程会把作品照片下载并转存为网站自己的静态图片，不会在网页中直接引用临时地址。
 
+Notion 连接的 webhook 指向 `/api/notion-webhook`。收到经过签名验证的内容变更事件后，该接口会调用 Vercel Deploy Hook 自动重新构建网站。`NOTION_WEBHOOK_VERIFICATION_TOKEN` 和 `VERCEL_DEPLOY_HOOK_URL` 仅保存在 Vercel 环境变量中。
+
 本地生成部署目录：
 
     pnpm run build

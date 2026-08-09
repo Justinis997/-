@@ -8,3 +8,5 @@ dist/
 
 # 本地摄影源文件：仅保留在电脑中，不上传 GitHub 或 Vercel。
 参考/
+.vercel/
+.env.local
