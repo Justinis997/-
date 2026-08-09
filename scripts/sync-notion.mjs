@@ -7,7 +7,9 @@ const API_VERSION = '2026-03-11';
 const API_BASE = 'https://api.notion.com/v1';
 const token = process.env.NOTION_API_KEY;
 const dataSources = Object.freeze({
-  architecture: process.env.NOTION_ARCHITECTURE_DATA_SOURCE_ID ?? 'c63265ce-eb1f-4095-a8e4-a2abeb8b56fa',
+  photography: process.env.NOTION_PHOTOGRAPHY_DATA_SOURCE_ID
+    ?? process.env.NOTION_ARCHITECTURE_DATA_SOURCE_ID
+    ?? 'c63265ce-eb1f-4095-a8e4-a2abeb8b56fa',
   essays: process.env.NOTION_ESSAYS_DATA_SOURCE_ID ?? 'cb26bbb2-0d69-4330-995f-0f51fc46739a',
   settings: process.env.NOTION_SETTINGS_DATA_SOURCE_ID ?? '9d80c43a-2f24-443b-8c31-317c44dda0e3',
 });
@@ -16,8 +18,9 @@ const root = resolve(process.env.SITE_OUTPUT_ROOT ?? '.');
 const photoDataPath = resolve(root, 'assets/js/photo-data.js');
 const essayDataPath = resolve(root, 'assets/js/essay-data.js');
 const settingsPath = resolve(root, 'assets/js/site-settings.js');
-const thumbnailDirectory = resolve(root, 'assets/photos/thumbnails/建筑');
-const fullDirectory = resolve(root, 'assets/photos/full/建筑');
+const thumbnailRoot = resolve(root, 'assets/photos/thumbnails');
+const fullRoot = resolve(root, 'assets/photos/full');
+const photoCategories = Object.freeze(['光影', '形式', '表面', '风光', '建筑', '陌生人', '生物']);
 
 const request = async (path, options = {}) => {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -96,13 +99,17 @@ const cleanGeneratedPhotos = async (directory) => {
   }
 };
 
-const downloadPhoto = async (url, pageId, index) => {
+const downloadPhoto = async (url, pageId, index, category) => {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`作品照片下载失败（${response.status}）`);
   const source = Buffer.from(await response.arrayBuffer());
   const stem = `${notionId(pageId)}-${String(index + 1).padStart(2, '0')}`;
   const thumbnailName = `${stem}.jpg`;
   const fullName = `${stem}.jpg`;
+  const fullDirectory = resolve(fullRoot, category);
+  const thumbnailDirectory = resolve(thumbnailRoot, category);
+  await mkdir(fullDirectory, { recursive: true });
+  await mkdir(thumbnailDirectory, { recursive: true });
   const fullPath = resolve(fullDirectory, fullName);
   const thumbnailPath = resolve(thumbnailDirectory, thumbnailName);
 
@@ -119,8 +126,8 @@ const downloadPhoto = async (url, pageId, index) => {
 
   return {
     id: stem,
-    thumbnailSrc: `./assets/photos/thumbnails/建筑/${thumbnailName}`,
-    fullSrc: `./assets/photos/full/建筑/${fullName}`,
+    thumbnailSrc: `./assets/photos/thumbnails/${category}/${thumbnailName}`,
+    fullSrc: `./assets/photos/full/${category}/${fullName}`,
     width: fullInfo.width,
     height: fullInfo.height,
   };
@@ -136,9 +143,11 @@ export const mergeManagedRecords = (existing, managed) => [
   return a.id.localeCompare(b.id);
 });
 
-const syncArchitecture = async (pages, existingPhotos) => {
-  await cleanGeneratedPhotos(thumbnailDirectory);
-  await cleanGeneratedPhotos(fullDirectory);
+const syncPhotography = async (pages, existingPhotos) => {
+  await Promise.all(photoCategories.flatMap((category) => [
+    cleanGeneratedPhotos(resolve(thumbnailRoot, category)),
+    cleanGeneratedPhotos(resolve(fullRoot, category)),
+  ]));
   const records = [];
 
   const orderedPages = [...pages].sort((a, b) => {
@@ -151,20 +160,23 @@ const syncArchitecture = async (pages, existingPhotos) => {
     const title = plainText(page.properties?.作品名称);
     const creationDate = date(page.properties?.创作日期);
     const description = plainText(page.properties?.作品说明);
+    const category = select(page.properties?.分类);
     const files = page.properties?.作品照片?.files ?? [];
-    if (!title || files.length === 0) throw new Error(`已发布的建筑作品缺少名称或照片：${page.id}`);
+    if (!title || files.length === 0 || !photoCategories.includes(category)) {
+      throw new Error(`已发布的摄影作品缺少名称、有效分类或照片：${page.id}`);
+    }
 
     for (const [index, file] of files.entries()) {
       const url = fileUrl(file);
-      if (!url) throw new Error(`建筑作品包含无法读取的照片：${title}`);
-      const image = await downloadPhoto(url, page.id, index);
+      if (!url) throw new Error(`摄影作品包含无法读取的照片：${title}`);
+      const image = await downloadPhoto(url, page.id, index, category);
       records.push({
         ...image,
         title: files.length > 1 ? `${title} · ${index + 1}` : title,
-        category: '建筑',
+        category,
         date: creationDate,
         src: image.fullSrc,
-        alt: description || `建筑作品：${title}`,
+        alt: description || `${category}摄影作品：${title}`,
       });
     }
   }
@@ -210,18 +222,18 @@ export const run = async () => {
   }
 
   const cacheBust = `?sync=${Date.now()}`;
-  const [{ PHOTO_DATA }, { ESSAY_DATA }, architecture, essays, settings] = await Promise.all([
+  const [{ PHOTO_DATA }, { ESSAY_DATA }, photography, essays, settings] = await Promise.all([
     import(`${pathToFileURL(photoDataPath).href}${cacheBust}`),
     import(`${pathToFileURL(essayDataPath).href}${cacheBust}`),
-    queryPublished(dataSources.architecture),
+    queryPublished(dataSources.photography),
     queryPublished(dataSources.essays),
     queryAll(dataSources.settings),
   ]);
 
-  const architectureCount = await syncArchitecture(architecture, PHOTO_DATA);
+  const photographyCount = await syncPhotography(photography, PHOTO_DATA);
   const essayCount = await syncEssays(essays, ESSAY_DATA);
   await syncSettings(settings);
-  console.log(`Notion 同步完成：建筑照片 ${architectureCount} 张，随笔 ${essayCount} 篇。`);
+  console.log(`Notion 同步完成：摄影作品 ${photographyCount} 张，随笔 ${essayCount} 篇。`);
 };
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
