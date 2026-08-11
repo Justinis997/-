@@ -1,7 +1,9 @@
+import { createHash } from 'node:crypto';
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import { writeHomeData } from './home-data.mjs';
 
 const API_VERSION = '2026-03-11';
 const API_BASE = 'https://api.notion.com/v1';
@@ -18,6 +20,7 @@ const root = resolve(process.env.SITE_OUTPUT_ROOT ?? '.');
 const photoDataPath = resolve(root, 'assets/js/photo-data.js');
 const essayDataPath = resolve(root, 'assets/js/essay-data.js');
 const settingsPath = resolve(root, 'assets/js/site-settings.js');
+const homeDataPath = resolve(root, 'assets/js/home-data.js');
 const thumbnailRoot = resolve(root, 'assets/photos/thumbnails');
 const fullRoot = resolve(root, 'assets/photos/full');
 const photoCategories = Object.freeze(['光影', '形式', '表面', '风光', '建筑', '陌生人', '生物']);
@@ -93,7 +96,7 @@ const cleanGeneratedPhotos = async (directory) => {
   await mkdir(directory, { recursive: true });
   const entries = await readdir(directory, { withFileTypes: true });
   for (const entry of entries) {
-    if (entry.isFile() && /^notion-[a-f0-9]+\.jpg$/u.test(entry.name)) {
+    if (entry.isFile() && /^notion-[a-f0-9]+(?:-\d{2}(?:-[a-f0-9]{12})?)?\.jpg$/u.test(entry.name)) {
       await rm(resolve(directory, entry.name));
     }
   }
@@ -103,7 +106,8 @@ const downloadPhoto = async (url, pageId, index, category) => {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`作品照片下载失败（${response.status}）`);
   const source = Buffer.from(await response.arrayBuffer());
-  const stem = `${notionId(pageId)}-${String(index + 1).padStart(2, '0')}`;
+  const contentHash = createHash('sha256').update(source).digest('hex').slice(0, 12);
+  const stem = `${notionId(pageId)}-${String(index + 1).padStart(2, '0')}-${contentHash}`;
   const thumbnailName = `${stem}.jpg`;
   const fullName = `${stem}.jpg`;
   const fullDirectory = resolve(fullRoot, category);
@@ -192,8 +196,9 @@ const syncPhotography = async (pages) => {
     }
   }
 
-  await writeFile(photoDataPath, `export const PHOTO_DATA = Object.freeze(${JSON.stringify(sortRecords(records), null, 2)});\n`);
-  return records.length;
+  const sortedRecords = sortRecords(records);
+  await writeFile(photoDataPath, `export const PHOTO_DATA = Object.freeze(${JSON.stringify(sortedRecords, null, 2)});\n`);
+  return sortedRecords;
 };
 
 const syncEssays = async (pages) => {
@@ -210,8 +215,9 @@ const syncEssays = async (pages) => {
       content: await retrieveMarkdown(page.id),
     });
   }
-  await writeFile(essayDataPath, `export const ESSAY_DATA = ${JSON.stringify(sortRecords(managed), null, 2)};\n`);
-  return managed.length;
+  const sortedRecords = sortRecords(managed);
+  await writeFile(essayDataPath, `export const ESSAY_DATA = ${JSON.stringify(sortedRecords, null, 2)};\n`);
+  return sortedRecords;
 };
 
 const syncSettings = async (pages) => {
@@ -222,6 +228,7 @@ const syncSettings = async (pages) => {
   const content = plainText(recentActivity?.properties?.内容);
   if (!content) throw new Error('网站设置中缺少已启用的“首页近期动态”内容');
   await writeFile(settingsPath, `export const SITE_SETTINGS = Object.freeze(${JSON.stringify({ recentActivity: content }, null, 2)});\n`);
+  return content;
 };
 
 export const run = async () => {
@@ -236,10 +243,15 @@ export const run = async () => {
     queryAll(dataSources.settings),
   ]);
 
-  const photographyCount = await syncPhotography(photography);
-  const essayCount = await syncEssays(essays);
-  await syncSettings(settings);
-  console.log(`Notion 同步完成：摄影作品 ${photographyCount} 张，随笔 ${essayCount} 篇。`);
+  const photographyRecords = await syncPhotography(photography);
+  const essayRecords = await syncEssays(essays);
+  const recentActivity = await syncSettings(settings);
+  await writeHomeData(homeDataPath, {
+    photos: photographyRecords,
+    essays: essayRecords,
+    recentActivity,
+  });
+  console.log(`Notion 同步完成：摄影作品 ${photographyRecords.length} 张，随笔 ${essayRecords.length} 篇。`);
 };
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url))) {
