@@ -1,4 +1,5 @@
-import { HOME_DATA } from './home-data.js';
+import { PHOTO_DATA } from './photo-data.js';
+import { ESSAY_DATA } from './essay-data.js';
 
 const hierarchyClasses = [
   'latest-photo--primary',
@@ -10,7 +11,10 @@ let latestPhotos = [];
 let activePhotoIndex = 0;
 let returnFocus = null;
 
-const updateTotals = Object.freeze(HOME_DATA.totals);
+const updateTotals = Object.freeze({
+  photography: PHOTO_DATA.length,
+  essays: ESSAY_DATA.length,
+});
 
 const setUpdateCount = (element, value) => {
   element.textContent = new Intl.NumberFormat('zh-CN').format(value);
@@ -63,11 +67,6 @@ export function initUpdateCounters() {
   }, { threshold: 0.35 });
 
   observer.observe(overview);
-}
-
-export function initRecentActivity() {
-  const activity = document.querySelector('.news-activity');
-  if (activity && HOME_DATA.recentActivity) activity.textContent = HOME_DATA.recentActivity;
 }
 
 const getLightboxElements = () => ({
@@ -135,8 +134,6 @@ export function renderLatestPhotos(photos) {
       image.src = photo.thumbnailSrc;
       image.alt = photo.alt;
       image.loading = index === 0 ? 'eager' : 'lazy';
-      image.decoding = 'async';
-      if (index === 0) image.fetchPriority = 'high';
 
       const fallback = document.createElement('span');
       fallback.className = 'photo-fallback';
@@ -178,8 +175,7 @@ export function initHomeLightbox() {
 }
 
 if (typeof document !== 'undefined') {
-  initRecentActivity();
   initUpdateCounters();
-  renderLatestPhotos(HOME_DATA.latestPhotos);
+  renderLatestPhotos(PHOTO_DATA);
   initHomeLightbox();
 }

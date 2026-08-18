@@ -330,7 +330,8 @@ test('homepage latest news shows aligned update totals and the current activity'
   assert.doesNotMatch(css, /\.news-panel--activity\s*{[^}]*border/s);
   assert.doesNotMatch(css, /\.update-count\s*{[^}]*border/s);
   assert.match(css, /@media \(max-width:\s*640px\)[\s\S]*?\.news-overview\s*{[^}]*grid-template-columns:\s*1fr/s);
-  assert.match(javascript, /HOME_DATA\.totals/);
+  assert.match(javascript, /photography:\s*PHOTO_DATA\.length/);
+  assert.match(javascript, /essays:\s*ESSAY_DATA\.length/);
   assert.match(javascript, /IntersectionObserver/);
   assert.match(javascript, /prefers-reduced-motion:\s*reduce/);
 });
@@ -358,10 +359,10 @@ test('homepage social icons use the requested size and page-centered alignment',
 test('homepage latest essays open full content in a local dialog', () => {
   const html = read('index.html');
   const css = read('assets/css/styles.css');
-  const javascript = read('assets/js/home-essays.js');
+  const javascript = read('assets/js/essays.js');
   assert.ok(html.includes('data-latest-essays'));
   assert.ok(html.includes('data-essay-dialog'));
-  assert.ok(html.includes('./assets/js/home-essays.js'));
+  assert.ok(html.includes('./assets/js/essays.js'));
   assert.equal(html.includes('即将发布'), false);
   assert.ok(javascript.indexOf("title.className = 'essay-preview__title'") < javascript.indexOf('card.replaceChildren(title, date, excerpt)'));
   assert.ok(javascript.includes("excerpt.className = 'essay-preview__excerpt'"));
