@@ -116,9 +116,119 @@ export function initSite() {
 
   if (menuButton && primaryLinks) {
     const label = menuButton.querySelector('.sr-only');
+    const compactLayout = () => globalThis.matchMedia?.('(max-width: 640px)')?.matches ?? false;
+    const mobileNavigation = document.createElement('div');
+    mobileNavigation.className = 'mobile-navigation';
+    mobileNavigation.id = 'mobile-navigation';
+    mobileNavigation.setAttribute('aria-hidden', 'true');
+    mobileNavigation.innerHTML = `
+      <div class="mobile-navigation__bar">
+        <a class="mobile-navigation__brand" href="./index.html" aria-label="Justin，返回首页">Justin</a>
+        <button class="mobile-navigation__close" type="button" aria-label="关闭导航菜单"><span aria-hidden="true">×</span></button>
+      </div>
+      <div class="mobile-navigation__views"></div>`;
+    document.body.append(mobileNavigation);
+    menuButton.setAttribute('aria-controls', 'mobile-navigation');
+
+    const views = mobileNavigation.querySelector('.mobile-navigation__views');
+    const closeButton = mobileNavigation.querySelector('.mobile-navigation__close');
+    const menuItems = [...primaryLinks.querySelectorAll('[data-nav-menu]')];
+    const directLink = primaryLinks.querySelector(':scope > a[href]');
+
+    const itemDetails = menuItems.map((item) => {
+      const trigger = item.querySelector('.nav-trigger');
+      const title = trigger?.textContent?.trim() ?? '';
+      const links = [...item.querySelectorAll('.nav-mega a')].map((link) => ({
+        label: link.textContent.trim(), href: link.href, external: link.target === '_blank',
+      }));
+      const panels = [...item.querySelectorAll('[data-nav-panel]')].map((panel) => ({
+        title: panel.querySelector('.nav-mega__label')?.textContent?.trim() ?? '',
+        links: [...panel.querySelectorAll('a')].map((link) => ({ label: link.textContent.trim(), href: link.href })),
+      }));
+      return { title, href: trigger?.matches('a') ? trigger.href : '', links, panels };
+    });
+
+    const makeLink = ({ label: linkLabel, href, external = false }) => {
+      const link = document.createElement('a');
+      link.className = 'mobile-navigation__link';
+      link.href = href;
+      link.textContent = linkLabel;
+      if (external) {
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+      }
+      return link;
+    };
+
+    const renderMenu = () => {
+      views.replaceChildren();
+      const root = document.createElement('section');
+      root.className = 'mobile-navigation__view is-active';
+      root.dataset.mobileNavView = 'root';
+      root.setAttribute('aria-label', '主菜单');
+      const rootList = document.createElement('div');
+      rootList.className = 'mobile-navigation__list';
+
+      itemDetails.forEach((item) => {
+        const entry = document.createElement(item.links.length || item.panels.length ? 'button' : 'a');
+        entry.className = 'mobile-navigation__entry';
+        entry.textContent = item.title;
+        if (entry.tagName === 'A') entry.href = item.href;
+        else {
+          entry.type = 'button';
+          entry.dataset.mobileNavOpen = item.title;
+          entry.setAttribute('aria-haspopup', 'true');
+          entry.setAttribute('aria-label', `打开${item.title}菜单`);
+        }
+        rootList.append(entry);
+      });
+      if (directLink) rootList.append(makeLink({ label: directLink.textContent.trim(), href: directLink.href }));
+      root.append(rootList);
+      views.append(root);
+
+      itemDetails.forEach((item) => {
+        if (!item.links.length && !item.panels.length) return;
+        const subMenu = document.createElement('section');
+        subMenu.className = 'mobile-navigation__view mobile-navigation__view--sub';
+        subMenu.dataset.mobileNavView = item.title;
+        subMenu.setAttribute('aria-label', `${item.title}菜单`);
+        const back = document.createElement('button');
+        back.className = 'mobile-navigation__back';
+        back.type = 'button';
+        back.dataset.mobileNavBack = '';
+        back.textContent = item.title;
+        back.setAttribute('aria-label', `返回主菜单，当前为${item.title}`);
+        subMenu.append(back);
+        const list = document.createElement('div');
+        list.className = 'mobile-navigation__list mobile-navigation__list--sub';
+        if (item.panels.length) {
+          item.panels.forEach((panel) => {
+            const group = document.createElement('div');
+            group.className = 'mobile-navigation__group';
+            const groupTitle = document.createElement('p');
+            groupTitle.textContent = panel.title;
+            group.append(groupTitle, ...panel.links.map(makeLink));
+            list.append(group);
+          });
+        } else list.append(...item.links.map(makeLink));
+        subMenu.append(list);
+        views.append(subMenu);
+      });
+    };
+    renderMenu();
+
+    const showView = (viewName = 'root') => {
+      [...views.querySelectorAll('.mobile-navigation__view')].forEach((view) => {
+        view.classList.toggle('is-active', view.dataset.mobileNavView === viewName);
+      });
+    };
     const closeMenu = () => {
       menuButton.setAttribute('aria-expanded', 'false');
       primaryLinks.classList.remove('is-open');
+      mobileNavigation.classList.remove('is-open');
+      mobileNavigation.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('mobile-navigation-open');
+      showView();
       [...(primaryLinks.querySelectorAll?.('[data-nav-menu].is-open') ?? [])].forEach((item) => {
         item.classList.remove('is-open');
         item.querySelector?.('.nav-trigger')?.setAttribute('aria-expanded', 'false');
@@ -129,12 +239,39 @@ export function initSite() {
 
     menuButton.addEventListener('click', () => {
       const isOpen = menuButton.getAttribute('aria-expanded') === 'true';
+      if (compactLayout()) {
+        if (isOpen) closeMenu();
+        else {
+          menuButton.setAttribute('aria-expanded', 'true');
+          mobileNavigation.classList.add('is-open');
+          mobileNavigation.setAttribute('aria-hidden', 'false');
+          document.body.classList.add('mobile-navigation-open');
+          showView();
+          if (label) label.textContent = '关闭导航菜单';
+        }
+        return;
+      }
       menuButton.setAttribute('aria-expanded', String(!isOpen));
       primaryLinks.classList.toggle('is-open', !isOpen);
       if (label) label.textContent = isOpen ? '打开导航菜单' : '关闭导航菜单';
     });
 
+    closeButton.addEventListener('click', () => {
+      closeMenu();
+      menuButton.focus();
+    });
+
+    views.addEventListener('click', (event) => {
+      const opener = event.target.closest('[data-mobile-nav-open]');
+      if (opener) showView(opener.dataset.mobileNavOpen);
+      if (event.target.closest('[data-mobile-nav-back]')) showView();
+    });
+
     primaryLinks.addEventListener('click', (event) => {
+      if (event.target.closest('a')) closeMenu();
+    });
+
+    mobileNavigation.addEventListener('click', (event) => {
       if (event.target.closest('a')) closeMenu();
     });
 

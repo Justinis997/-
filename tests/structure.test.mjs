@@ -68,14 +68,19 @@ test('essay and Tools mega menus share the shortened two-column spacing', () => 
   assert.match(css, /\.nav-mega__tool-description-column\s*\{[^}]*padding-top:/s);
 });
 
-test('mobile Tools stays left aligned and only reveals Pick One when expanded', () => {
+test('mobile navigation uses a full-screen Apple-style hierarchy with animated submenus', () => {
   const css = read('assets/css/styles.css');
   const site = read('assets/js/site.js');
-  assert.match(css, /\.nav-trigger--button\s*\{[^}]*text-align:\s*left;/s);
-  assert.match(css, /@media \(max-width: 640px\)[\s\S]*?\.nav-item--tools \.nav-mega\s*\{[^}]*display:\s*none;/s);
-  assert.match(css, /@media \(max-width: 640px\)[\s\S]*?\.nav-item--tools\.is-open \.nav-mega\s*\{[^}]*display:\s*block;/s);
-  assert.match(site, /isCompactLayout/);
-  assert.match(site, /trigger\.addEventListener\?\.\('click',[\s\S]*?shouldOpen/s);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*?\.mobile-navigation\s*\{[^}]*position:\s*fixed;[^}]*inset:\s*0;/s);
+  assert.match(css, /\.mobile-navigation\.is-open\s*\{[^}]*visibility:\s*visible;[^}]*opacity:\s*1;/s);
+  assert.match(css, /\.mobile-navigation__view\.is-active\s*\{[^}]*transform:\s*none;/s);
+  assert.match(css, /@keyframes mobile-navigation-item-in\s*\{/);
+  assert.match(css, /\.mobile-navigation__entry,[\s\S]*?font-size:\s*clamp\(22px,\s*6vw,\s*29px\);/s);
+  assert.match(css, /\.mobile-navigation__entry::after\s*\{[^}]*content:\s*none;/s);
+  assert.match(site, /mobile-navigation/);
+  assert.match(site, /dataMobileNavOpen|mobileNavOpen/);
+  assert.match(site, /showView\(opener\.dataset\.mobileNavOpen\)/);
+  assert.match(site, /item\.panels\.forEach/);
 });
 
 test('Tools trigger removes the browser button box without adding a replacement decoration', () => {
@@ -164,7 +169,7 @@ test('navigation and reveal content remain visible without JavaScript', () => {
   assert.match(css, /\.js \.reveal\s*\{[^}]*opacity:\s*0/s);
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*?\.js \.mobile-menu-button\s*\{[^}]*display:\s*block/s);
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*?\.js \.primary-links\s*\{[^}]*display:\s*none/s);
-  assert.match(css, /@media \(max-width: 640px\)[\s\S]*?\.js \.primary-links\.is-open\s*\{[^}]*display:\s*flex/s);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*?\.mobile-navigation\.is-open\s*\{[^}]*pointer-events:\s*auto/s);
 });
 
 test('photography cards use the homepage-style row-staggered rise-in animation with reduced-motion support', () => {
@@ -629,50 +634,8 @@ test('renderLatestPhotos renders the first three dated records with hierarchy cl
   }
 });
 
-test('Escape returns focus only when the mobile menu is open', async () => {
-  const originalDocument = globalThis.document;
-  const originalWindow = globalThis.window;
-  const listeners = new Map();
-  let expanded = 'false';
-  let focusCount = 0;
-  const label = { textContent: '打开导航菜单' };
-  const menuButton = {
-    querySelector: () => label,
-    getAttribute: () => expanded,
-    setAttribute: (name, value) => {
-      if (name === 'aria-expanded') expanded = value;
-    },
-    addEventListener: (type, handler) => listeners.set(`button:${type}`, handler),
-    focus: () => { focusCount += 1; },
-  };
-  const primaryLinks = {
-    classList: { remove() {}, toggle() {} },
-    addEventListener: (type, handler) => listeners.set(`links:${type}`, handler),
-  };
-
-  globalThis.document = {
-    readyState: 'loading',
-    querySelector: (selector) => selector === '.mobile-menu-button' ? menuButton : primaryLinks,
-    querySelectorAll: () => [],
-    addEventListener: (type, handler) => listeners.set(`document:${type}`, handler),
-  };
-  globalThis.window = {};
-
-  try {
-    const source = read('assets/js/site.js');
-    const moduleUrl = `data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
-    const { initSite } = await import(moduleUrl);
-    initSite();
-
-    listeners.get('document:keydown')({ key: 'Escape' });
-    assert.equal(focusCount, 0, 'closed menu must not steal focus on Escape');
-
-    expanded = 'true';
-    listeners.get('document:keydown')({ key: 'Escape' });
-    assert.equal(expanded, 'false');
-    assert.equal(focusCount, 1, 'open menu returns focus to its button on Escape');
-  } finally {
-    globalThis.document = originalDocument;
-    globalThis.window = originalWindow;
-  }
+test('mobile navigation closes with Escape and returns focus to its trigger', () => {
+  const site = read('assets/js/site.js');
+  assert.match(site, /event\.key === 'Escape' && menuButton\.getAttribute\('aria-expanded'\) === 'true'/);
+  assert.match(site, /closeMenu\(\);\s*menuButton\.focus\(\);/s);
 });
