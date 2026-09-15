@@ -159,17 +159,17 @@ function renderLightboxPhoto(index, elements) {
   elements.imageFallback.textContent = photo.title;
   elements.image.parentElement?.classList.remove('is-error');
   elements.title.textContent = photo.title;
-  elements.meta.textContent = photo.category;
+  elements.meta.textContent = '';
   const confirmedDate = formatPhotoDate(photo.date);
   elements.date.replaceChildren();
   if (confirmedDate) {
     const time = document.createElement('time');
     time.dateTime = confirmedDate.datetime;
-    time.textContent = confirmedDate.label;
+    time.textContent = `${photo.category} · ${confirmedDate.label}`;
     elements.date.append(time);
   } else {
     const status = document.createElement('span');
-    status.textContent = '日期未确认';
+    status.textContent = `${photo.category} · 日期未确认`;
     elements.date.append(status);
   }
   elements.date.hidden = false;

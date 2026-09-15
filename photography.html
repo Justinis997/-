@@ -997,14 +997,17 @@
   <dialog class="photo-lightbox" data-lightbox role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
     <button class="lightbox-close" type="button" data-lightbox-close aria-label="关闭作品预览">×</button>
     <button class="lightbox-control lightbox-control--previous" type="button" data-lightbox-previous aria-label="上一张作品"></button>
-    <figure class="lightbox-figure">
-      <div class="lightbox-media">
-        <span class="photo-fallback" data-lightbox-fallback aria-hidden="true"></span>
-        <img data-lightbox-image alt="">
+    <figure class="lightbox-figure lightbox-figure--camera">
+      <div class="camera-shell">
+        <img class="camera-shell__frame" src="./assets/images/hasselblad-camera-back.png" alt="" aria-hidden="true">
+        <div class="lightbox-media camera-shell__display">
+          <span class="photo-fallback" data-lightbox-fallback aria-hidden="true"></span>
+          <img data-lightbox-image alt="">
+        </div>
       </div>
       <figcaption>
         <span id="lightbox-title" data-lightbox-title></span>
-        <span data-lightbox-meta></span>
+        <span data-lightbox-meta hidden></span>
         <span data-lightbox-date hidden></span>
       </figcaption>
     </figure>
