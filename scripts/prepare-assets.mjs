@@ -6,7 +6,7 @@ import { resolvePythonBin } from './runtime-paths.mjs';
 
 const PROJECT_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const ROOT = process.env.ASSET_OUTPUT_ROOT || PROJECT_ROOT;
-const SOURCE = join(PROJECT_ROOT, '参考');
+const SOURCE = process.env.ASSET_SOURCE_ROOT || join(PROJECT_ROOT, '参考');
 const CATEGORIES = ['光影', '形式', '表面', '风光', '建筑', '陌生人', '生物'];
 const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.heic']);
 const bundledHeifConvert = join(dirname(process.execPath), '..', '..', 'bin', 'override', 'heif-convert');

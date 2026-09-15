@@ -1,4 +1,5 @@
 import { ESSAY_DATA } from './essay-data.js';
+import { bindDialogInteractions, onReady } from './ui.js';
 
 let activeTrigger = null;
 let essayDirectoryCleanup = null;
@@ -359,22 +360,11 @@ export function initEssays() {
   renderLatestEssays();
   initEssayYearDirectory();
   const elements = getDialogElements();
-  elements.close?.addEventListener('click', closeEssay);
-  elements.dialog?.addEventListener('click', (event) => {
-    if (event.target === elements.dialog) closeEssay();
-  });
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && elements.dialog?.open) {
-      event.preventDefault();
-      closeEssay();
-    }
+  bindDialogInteractions({
+    dialog: elements.dialog,
+    closeButton: elements.close,
+    close: closeEssay,
   });
 }
 
-if (typeof document !== 'undefined') {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initEssays, { once: true });
-  } else {
-    initEssays();
-  }
-}
+onReady(initEssays);

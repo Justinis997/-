@@ -1,4 +1,5 @@
 import { PHOTO_DATA } from './photo-data.js';
+import { bindDialogInteractions, normalizeIndex, onReady } from './ui.js?v=lightbox-nav-20260915';
 
 let activePhotos = [...PHOTO_DATA];
 let activeIndex = 0;
@@ -17,6 +18,8 @@ const getElements = () => ({
   meta: document.querySelector('[data-lightbox-meta]'),
   date: document.querySelector('[data-lightbox-date]'),
   close: document.querySelector('[data-lightbox-close]'),
+  previous: document.querySelector('[data-lightbox-previous]'),
+  next: document.querySelector('[data-lightbox-next]'),
 });
 
 export function comparePhotosNewestFirst(a, b) {
@@ -151,7 +154,7 @@ export function renderGrid(category = '全部', { animate = false, columnCount }
 }
 
 function renderLightboxPhoto(index, elements) {
-  activeIndex = ((index % activePhotos.length) + activePhotos.length) % activePhotos.length;
+  activeIndex = normalizeIndex(index, activePhotos.length);
   const photo = activePhotos[activeIndex];
 
   elements.image.src = photo.fullSrc;
@@ -175,7 +178,7 @@ function renderLightboxPhoto(index, elements) {
   elements.date.hidden = false;
   if (typeof globalThis.Image === 'function' && activePhotos.length > 1) {
     for (const adjacentIndex of [activeIndex - 1, activeIndex + 1]) {
-      const normalizedIndex = ((adjacentIndex % activePhotos.length) + activePhotos.length) % activePhotos.length;
+      const normalizedIndex = normalizeIndex(adjacentIndex, activePhotos.length);
       const preload = new globalThis.Image();
       preload.src = activePhotos[normalizedIndex].fullSrc;
     }
@@ -215,7 +218,7 @@ export function closeLightbox() {
 export function moveLightbox(delta) {
   if (activePhotos.length === 0) return;
   const baseIndex = queuedLightboxIndex ?? activeIndex;
-  const targetIndex = ((baseIndex + delta) % activePhotos.length + activePhotos.length) % activePhotos.length;
+  const targetIndex = normalizeIndex(baseIndex + delta, activePhotos.length);
   if (isLightboxTransitioning) {
     queuedLightboxIndex = targetIndex;
     return;
@@ -255,22 +258,6 @@ export function moveLightbox(delta) {
   }, { once: true });
 }
 
-function trapLightboxFocus(event, lightbox) {
-  if (event.key !== 'Tab') return;
-  const focusable = [...lightbox.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')];
-  if (focusable.length === 0) return;
-
-  const first = focusable[0];
-  const last = focusable[focusable.length - 1];
-  if (!event.shiftKey && document.activeElement === last) {
-    event.preventDefault();
-    first.focus();
-  } else if (event.shiftKey && document.activeElement === first) {
-    event.preventDefault();
-    last.focus();
-  }
-}
-
 export function initPhotography() {
   const elements = getElements();
   if (!elements.grid || !elements.lightbox) return;
@@ -300,23 +287,16 @@ export function initPhotography() {
     });
   });
 
-  elements.close.addEventListener('click', closeLightbox);
   elements.image.addEventListener('error', () => elements.image.parentElement?.classList.add('is-error'));
-  document.querySelector('[data-lightbox-previous]')?.addEventListener('click', () => moveLightbox(-1));
-  document.querySelector('[data-lightbox-next]')?.addEventListener('click', () => moveLightbox(1));
-  elements.lightbox.addEventListener('click', (event) => {
-    if (event.target === elements.lightbox) closeLightbox();
-  });
-
-  document.addEventListener('keydown', (event) => {
-    if (!elements.lightbox.open) return;
-    trapLightboxFocus(event, elements.lightbox);
-    if (event.key === 'Escape') {
-      event.preventDefault?.();
-      closeLightbox();
-    }
-    if (event.key === 'ArrowLeft') moveLightbox(-1);
-    if (event.key === 'ArrowRight') moveLightbox(1);
+  bindDialogInteractions({
+    dialog: elements.lightbox,
+    closeButton: elements.close,
+    previousButton: elements.previous,
+    nextButton: elements.next,
+    close: closeLightbox,
+    previous: () => moveLightbox(-1),
+    next: () => moveLightbox(1),
+    trapKeyboardFocus: true,
   });
 
   if (window.location.hash) {
@@ -325,10 +305,4 @@ export function initPhotography() {
   }
 }
 
-if (typeof document !== 'undefined') {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initPhotography, { once: true });
-  } else {
-    initPhotography();
-  }
-}
+onReady(initPhotography);

@@ -6,6 +6,13 @@ import { ESSAY_DATA } from '../assets/js/essay-data.js';
 const pages = ['index.html', 'photography.html', 'articles.html', 'about.html'];
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 const projectRoot = new URL('../', import.meta.url);
+const cssRuleFor = (css, selector) => {
+  for (const match of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    const selectors = match[1].split(',').map((value) => value.trim());
+    if (selectors.includes(`.${selector}`)) return match[2];
+  }
+  return '';
+};
 const localTarget = (reference) => {
   const target = new URL(reference, projectRoot);
   target.search = '';
@@ -71,7 +78,9 @@ test('essay and Tools mega menus share the shortened two-column spacing', () => 
 test('mobile navigation uses a full-screen Apple-style hierarchy with animated submenus', () => {
   const css = read('assets/css/styles.css');
   const site = read('assets/js/site.js');
+  assert.match(css, /\.mobile-navigation\s*\{[^}]*display:\s*none;/s);
   assert.match(css, /@media \(max-width: 640px\)[\s\S]*?\.mobile-navigation\s*\{[^}]*position:\s*fixed;[^}]*inset:\s*0;/s);
+  assert.match(css, /@media \(max-width: 640px\)[\s\S]*?\.mobile-navigation\s*\{[^}]*display:\s*block;/s);
   assert.match(css, /\.mobile-navigation\.is-open\s*\{[^}]*visibility:\s*visible;[^}]*opacity:\s*1;/s);
   assert.match(css, /\.mobile-navigation__view\.is-active\s*\{[^}]*transform:\s*none;/s);
   assert.match(css, /@keyframes mobile-navigation-item-in\s*\{/);
@@ -81,6 +90,13 @@ test('mobile navigation uses a full-screen Apple-style hierarchy with animated s
   assert.match(site, /dataMobileNavOpen|mobileNavOpen/);
   assert.match(site, /showView\(opener\.dataset\.mobileNavOpen\)/);
   assert.match(site, /item\.panels\.forEach/);
+  assert.match(site, /setMobileNavigationOrder\(back, 0\)/);
+  assert.match(site, /setMobileNavigationOrder\(title, animationIndex\+\+\)/);
+  assert.match(site, /links\.forEach\(\(link\) => setMobileNavigationOrder\(link, animationIndex\+\+\)\)/);
+  assert.match(css, /\.mobile-navigation__group-title/);
+  assert.doesNotMatch(css, /\.mobile-navigation__entry:nth-child/);
+  assert.match(site, /const ensureNavigation/);
+  assert.match(site, /if \(navigation\) return navigation/);
 });
 
 test('Tools trigger removes the browser button box without adding a replacement decoration', () => {
@@ -104,6 +120,7 @@ test('mega menus use compact full-width expansion, staggered text motion, and a 
   assert.match(css, /\.nav-mega__label\s*\{[^}]*font-weight:\s*600;/s);
   assert.match(css, /\.nav-mega__primary\s*>\s*\.nav-mega__label\s*\{[^}]*margin-bottom:\s*16px;[^}]*font-weight:\s*300;/s);
   assert.match(css, /\.nav-mega__small-links[^}]*font-size:\s*14px/s);
+  assert.match(css, /\.nav-mega__large-links\s*>\s*:nth-child\(7\)\s*\{\s*transition-delay:\s*\.26s;/s);
   assert.match(css, /body::after\s*\{[^}]*background:\s*rgba\(235,\s*235,\s*237,\s*\.21\);/s);
   assert.match(css, /body::after\s*\{[^}]*backdrop-filter:\s*blur\(9px\) saturate\(87\.5%\);/s);
   assert.match(css, /body\.nav-mega-open::after\s*\{[^}]*opacity:\s*1;/s);
@@ -266,7 +283,7 @@ test('navigation and subpage content share the reference horizontal gutter', () 
 
   const expectedWidth = /width:\s*min\(calc\(100%\s*-\s*var\(--page-gutter\)\s*-\s*var\(--page-gutter\)\),\s*var\(--content-width\)\)\s*;/;
   for (const selector of ['site-nav', 'photography-main', 'interior-main']) {
-    const rule = css.match(new RegExp(`\\.${selector}\\s*\\{([^}]*)\\}`, 's'))?.[1] ?? '';
+    const rule = cssRuleFor(css, selector);
     assert.match(rule, expectedWidth, `${selector} must use the shared page gutter`);
   }
 });
@@ -286,7 +303,7 @@ test('photography, essays, and about titles share the photography page offset', 
   const css = read('assets/css/styles.css');
   assert.match(css, /--subpage-title-offset:\s*clamp\(48px,\s*7vw,\s*96px\)\s*;/);
   for (const selector of ['photography-main', 'interior-main']) {
-    const rule = css.match(new RegExp(`\\.${selector}\\s*\\{([^}]*)\\}`, 's'))?.[1] ?? '';
+    const rule = cssRuleFor(css, selector);
     assert.match(rule, /padding:\s*var\(--subpage-title-offset\)\s+0\s+80px\s*;/);
   }
   const aboutRule = css.match(/\.about-main\s*\{([^}]*)\}/s)?.[1] ?? '';
@@ -637,5 +654,5 @@ test('renderLatestPhotos renders the first three dated records with hierarchy cl
 test('mobile navigation closes with Escape and returns focus to its trigger', () => {
   const site = read('assets/js/site.js');
   assert.match(site, /event\.key === 'Escape' && menuButton\.getAttribute\('aria-expanded'\) === 'true'/);
-  assert.match(site, /closeMenu\(\);\s*menuButton\.focus\(\);/s);
+  assert.match(site, /closeMenu\(true\);/);
 });

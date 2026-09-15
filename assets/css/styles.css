@@ -302,8 +302,11 @@ a {
 .nav-mega__small-links > :nth-child(3) { transition-delay: .14s; }
 .nav-mega__large-links > :nth-child(4),
 .nav-mega__small-links > :nth-child(4) { transition-delay: .17s; }
+.nav-mega__large-links > :nth-child(5),
 .nav-mega__small-links > :nth-child(5) { transition-delay: .2s; }
+.nav-mega__large-links > :nth-child(6),
 .nav-mega__small-links > :nth-child(6) { transition-delay: .23s; }
+.nav-mega__large-links > :nth-child(7) { transition-delay: .26s; }
 
 .nav-mega__large-links a:hover,
 .nav-mega__large-links a:focus-visible,
@@ -365,6 +368,10 @@ a {
   transform: translateY(-3px) rotate(-45deg);
 }
 
+.mobile-navigation {
+  display: none;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -395,7 +402,6 @@ a {
   letter-spacing: -0.02em;
 }
 
-.home-main,
 .site-footer {
   width: min(calc(100% - 48px), var(--content-width));
   margin-right: auto;
@@ -742,13 +748,8 @@ a {
   fill: currentColor;
 }
 
-.social-icon--xiaohongshu {
-  width: 19.2px;
-}
-
 .social-icon--xiaohongshu text {
   fill: #fff;
-  font-family: var(--font-sans);
   font-size: 6.4px;
   font-weight: 900;
   letter-spacing: -.1em;
@@ -770,7 +771,8 @@ a {
   transform: none;
 }
 
-.photography-main {
+.photography-main,
+.interior-main {
   width: min(calc(100% - var(--page-gutter) - var(--page-gutter)), var(--content-width));
   margin: 0 auto;
   padding: var(--subpage-title-offset) 0 80px;
@@ -778,12 +780,6 @@ a {
 
 .photography-header {
   margin-bottom: clamp(22px, 3vw, 40px);
-}
-
-.interior-main {
-  width: min(calc(100% - var(--page-gutter) - var(--page-gutter)), var(--content-width));
-  margin: 0 auto;
-  padding: var(--subpage-title-offset) 0 80px;
 }
 
 .interior-header {
@@ -1151,10 +1147,6 @@ a {
   max-height: min(58svh, 620px);
   margin: 0;
   border-radius: var(--radius-large);
-}
-
-.about-copy {
-  padding-top: 0;
 }
 
 .about-copy > h2 {
@@ -1618,6 +1610,7 @@ a {
     position: fixed;
     z-index: 120;
     inset: 0;
+    display: block;
     visibility: hidden;
     overflow: hidden;
     opacity: 0;
@@ -1764,7 +1757,7 @@ a {
     margin-top: 20px;
   }
 
-  .mobile-navigation__group p {
+  .mobile-navigation__group-title {
     margin: 0 0 2px;
     color: var(--muted);
     font-size: 12px;
@@ -1774,17 +1767,11 @@ a {
 
   .mobile-navigation.is-open .mobile-navigation__view.is-active .mobile-navigation__entry,
   .mobile-navigation.is-open .mobile-navigation__view.is-active .mobile-navigation__link,
-  .mobile-navigation.is-open .mobile-navigation__view.is-active .mobile-navigation__group,
+  .mobile-navigation.is-open .mobile-navigation__view.is-active .mobile-navigation__group-title,
   .mobile-navigation.is-open .mobile-navigation__view.is-active .mobile-navigation__back {
     animation: mobile-navigation-item-in .48s var(--ease-apple) both;
     animation-delay: calc(var(--mobile-nav-index, 0) * 45ms + 70ms);
   }
-
-  .mobile-navigation__entry:nth-child(1), .mobile-navigation__link:nth-child(1), .mobile-navigation__group:nth-child(1) { --mobile-nav-index: 0; }
-  .mobile-navigation__entry:nth-child(2), .mobile-navigation__link:nth-child(2), .mobile-navigation__group:nth-child(2) { --mobile-nav-index: 1; }
-  .mobile-navigation__entry:nth-child(3), .mobile-navigation__link:nth-child(3), .mobile-navigation__group:nth-child(3) { --mobile-nav-index: 2; }
-  .mobile-navigation__entry:nth-child(4), .mobile-navigation__link:nth-child(4), .mobile-navigation__group:nth-child(4) { --mobile-nav-index: 3; }
-  .mobile-navigation__entry:nth-child(5), .mobile-navigation__link:nth-child(5), .mobile-navigation__group:nth-child(5) { --mobile-nav-index: 4; }
 
   @keyframes mobile-navigation-item-in {
     from { opacity: 0; transform: translateY(-14px); }
@@ -1805,10 +1792,6 @@ a {
   .photography-main,
   .interior-main {
     width: min(calc(100% - var(--page-gutter) - var(--page-gutter)), var(--content-width));
-  }
-
-  .photography-main,
-  .interior-main {
     padding-top: 36px;
   }
 
@@ -1846,14 +1829,6 @@ a {
     gap: 36px;
   }
 
-  .about-details::before {
-    left: 85px;
-  }
-
-  .about-section {
-    grid-template-columns: 85px minmax(0, 1fr);
-  }
-
   .about-portrait {
     max-width: 520px;
   }
@@ -1861,10 +1836,6 @@ a {
   .about-portrait img {
     width: 100%;
     max-height: none;
-  }
-
-  .about-copy {
-    padding-top: 0;
   }
 
   .home-main {
@@ -1909,7 +1880,6 @@ a {
   }
 
   .news-activity {
-    max-width: 28em;
     font-size: 16px;
   }
 

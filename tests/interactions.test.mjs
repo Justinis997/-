@@ -307,7 +307,7 @@ test('lightbox executes modal navigation, date branches, backdrop close, and foc
     assert.equal(fake.elements.date.children[0].tagName, 'time');
     assert.equal(fake.elements.date.children[0].dateTime, PHOTO_DATA[0].date);
 
-    fake.documentListeners.get('keydown')({ key: 'ArrowRight' });
+    fake.elements.next.listeners.get('click')();
     assert.equal(fake.lightboxMedia.classList.values.has('is-fading-out'), true);
     assert.equal(fake.elements.image.src, PHOTO_DATA[0].fullSrc);
     fake.elements.image.listeners.get('animationend')();
@@ -334,7 +334,10 @@ test('lightbox executes modal navigation, date branches, backdrop close, and foc
     photography.openLightbox(undatedIndex, trigger);
     assert.equal(fake.elements.date.hidden, false);
     assert.equal(fake.elements.date.children[0].tagName, 'span');
-    assert.equal(fake.elements.date.children[0].textContent, '日期未确认');
+    assert.equal(
+      fake.elements.date.children[0].textContent,
+      `${PHOTO_DATA[undatedIndex].category} · 日期未确认`,
+    );
     fake.documentListeners.get('keydown')({ key: 'Escape' });
     assert.equal(fake.elements.lightbox.open, false);
     assert.equal(trigger.focusCount, 1);

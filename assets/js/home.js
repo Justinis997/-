@@ -1,5 +1,6 @@
 import { PHOTO_DATA } from './photo-data.js';
 import { ESSAY_DATA } from './essay-data.js';
+import { bindDialogInteractions, normalizeIndex, onReady } from './ui.js?v=lightbox-nav-20260915';
 
 const hierarchyClasses = [
   'latest-photo--primary',
@@ -84,7 +85,7 @@ export function openLatestPhoto(index, trigger = document.activeElement) {
   const elements = getLightboxElements();
   if (!elements.lightbox || latestPhotos.length === 0) return;
 
-  activePhotoIndex = ((index % latestPhotos.length) + latestPhotos.length) % latestPhotos.length;
+  activePhotoIndex = normalizeIndex(index, latestPhotos.length);
   const photo = latestPhotos[activePhotoIndex];
   returnFocus = trigger;
 
@@ -156,26 +157,20 @@ export function initHomeLightbox() {
   const elements = getLightboxElements();
   if (!elements.lightbox) return;
 
-  elements.close?.addEventListener('click', closeLatestPhoto);
-  elements.previous?.addEventListener('click', () => moveLatestPhoto(-1));
-  elements.next?.addEventListener('click', () => moveLatestPhoto(1));
   elements.image?.addEventListener('error', () => elements.image.parentElement?.classList.add('is-error'));
-  elements.lightbox.addEventListener('click', (event) => {
-    if (event.target === elements.lightbox) closeLatestPhoto();
-  });
-  document.addEventListener('keydown', (event) => {
-    if (!elements.lightbox.open) return;
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      closeLatestPhoto();
-    }
-    if (event.key === 'ArrowLeft') moveLatestPhoto(-1);
-    if (event.key === 'ArrowRight') moveLatestPhoto(1);
+  bindDialogInteractions({
+    dialog: elements.lightbox,
+    closeButton: elements.close,
+    previousButton: elements.previous,
+    nextButton: elements.next,
+    close: closeLatestPhoto,
+    previous: () => moveLatestPhoto(-1),
+    next: () => moveLatestPhoto(1),
   });
 }
 
-if (typeof document !== 'undefined') {
+onReady(() => {
   initUpdateCounters();
   renderLatestPhotos(PHOTO_DATA);
   initHomeLightbox();
-}
+});

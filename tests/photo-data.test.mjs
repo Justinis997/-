@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -64,15 +64,31 @@ test('newest three match verified source metadata', () => {
 
 test('asset preparation never changes source references', () => {
   const referenceDirectory = fileURLToPath(new URL('../参考', import.meta.url));
-  const before = hashTree(referenceDirectory);
+  const sourceRoot = mkdtempSync(join(tmpdir(), 'personal-site-source-'));
   const outputRoot = mkdtempSync(join(tmpdir(), 'personal-site-assets-'));
+  copyFileSync(join(referenceDirectory, '证件照.png'), join(sourceRoot, '证件照.png'));
+  copyFileSync(join(referenceDirectory, 'logo-four-colors.png'), join(sourceRoot, 'logo-four-colors.png'));
+  for (const category of ['光影', '形式', '表面', '风光', '建筑', '陌生人', '生物']) {
+    const sourceCategory = join(referenceDirectory, 'photos', category);
+    const targetCategory = join(sourceRoot, 'photos', category);
+    mkdirSync(targetCategory, { recursive: true });
+    const sample = readdirSync(sourceCategory).find((name) => /\.(?:png|jpe?g|heic)$/i.test(name));
+    assert.ok(sample, `${category} needs a source fixture`);
+    copyFileSync(join(sourceCategory, sample), join(targetCategory, sample));
+  }
+  const before = hashTree(sourceRoot);
   copyFileSync(fileURLToPath(new URL('../photography.html', import.meta.url)), join(outputRoot, 'photography.html'));
   try {
     execFileSync(process.execPath, [fileURLToPath(new URL('../scripts/prepare-assets.mjs', import.meta.url))], {
-      env: { ...process.env, ASSET_OUTPUT_ROOT: outputRoot },
+      env: {
+        ...process.env,
+        ASSET_OUTPUT_ROOT: outputRoot,
+        ASSET_SOURCE_ROOT: sourceRoot,
+      },
     });
-    assert.deepEqual(hashTree(referenceDirectory), before);
+    assert.deepEqual(hashTree(sourceRoot), before);
   } finally {
     rmSync(outputRoot, { recursive: true, force: true });
+    rmSync(sourceRoot, { recursive: true, force: true });
   }
 });
