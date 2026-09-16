@@ -175,7 +175,7 @@ test('every page has matching Open Graph metadata, a local icon, and early JS en
     assert.ok(html.includes(`<meta property="og:title" content="${title}">`));
     assert.ok(html.includes(`<meta property="og:description" content="${description}">`));
     assert.ok(html.includes('<meta property="og:type" content="website">'));
-    assert.ok(html.includes('<link rel="icon" href="./assets/images/favicon.png" type="image/png">'));
+    assert.ok(html.includes('<link rel="icon" href="./assets/images/favicon.png?v=white-padding" type="image/png">'));
     assert.equal(/(?:canonical|og:url|og:image)/.test(html), false);
   }
 });
