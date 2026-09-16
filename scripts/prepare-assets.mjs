@@ -2,7 +2,6 @@ import { execFileSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { resolvePythonBin } from './runtime-paths.mjs';
 
 const PROJECT_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const ROOT = process.env.ASSET_OUTPUT_ROOT || PROJECT_ROOT;
@@ -55,11 +54,6 @@ mkdirSync(join(ROOT, 'assets/js'), { recursive: true });
 
 copyFileSync(join(SOURCE, '证件照.png'), join(ROOT, 'assets/images/portrait.png'));
 execFileSync('sips', ['-Z', '1800', join(ROOT, 'assets/images/portrait.png')]);
-
-execFileSync(
-  resolvePythonBin(),
-  [join(PROJECT_ROOT, 'scripts/make-logo-black.py'), join(SOURCE, 'logo-four-colors.png'), join(ROOT, 'assets/images/logo-black.png')],
-);
 
 const records = [];
 for (const category of CATEGORIES) {

@@ -19,9 +19,3 @@ test('asset preparation script contains no user-specific absolute path', () => {
   const source = readFileSync(new URL('../scripts/prepare-assets.mjs', import.meta.url), 'utf8');
   assert.equal(source.includes('/Users/'), false);
 });
-
-test('logo conversion avoids deprecated Pillow pixel access', () => {
-  const source = readFileSync(new URL('../scripts/make-logo-black.py', import.meta.url), 'utf8');
-  assert.equal(source.includes('.getdata()'), false);
-  assert.ok(source.includes('.get_flattened_data()'));
-});

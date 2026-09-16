@@ -67,7 +67,6 @@ test('asset preparation never changes source references', () => {
   const sourceRoot = mkdtempSync(join(tmpdir(), 'personal-site-source-'));
   const outputRoot = mkdtempSync(join(tmpdir(), 'personal-site-assets-'));
   copyFileSync(join(referenceDirectory, '证件照.png'), join(sourceRoot, '证件照.png'));
-  copyFileSync(join(referenceDirectory, 'logo-four-colors.png'), join(sourceRoot, 'logo-four-colors.png'));
   for (const category of ['光影', '形式', '表面', '风光', '建筑', '陌生人', '生物']) {
     const sourceCategory = join(referenceDirectory, 'photos', category);
     const targetCategory = join(sourceRoot, 'photos', category);
